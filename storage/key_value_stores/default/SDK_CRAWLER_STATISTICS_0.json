@@ -1,0 +1,57 @@
+{
+  "requestsFinished": 0,
+  "requestsFailed": 1,
+  "requestsRetries": 1,
+  "requestsFailedPerMinute": 7,
+  "requestsFinishedPerMinute": 0,
+  "requestMinDurationMillis": null,
+  "requestMaxDurationMillis": 0,
+  "requestTotalFailedDurationMillis": 1007,
+  "requestTotalFinishedDurationMillis": 0,
+  "crawlerStartedAt": "2026-07-02T15:40:52.292Z",
+  "crawlerFinishedAt": "2026-07-02T15:40:59.867Z",
+  "statsPersistedAt": "2026-07-02T15:40:59.868Z",
+  "crawlerRuntimeMillis": 7699,
+  "crawlerLastStartTimestamp": 1783006852169,
+  "requestRetryHistogram": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    1
+  ],
+  "statsId": 0,
+  "requestAvgFailedDurationMillis": 1007,
+  "requestAvgFinishedDurationMillis": null,
+  "requestTotalDurationMillis": 1007,
+  "requestsTotal": 1,
+  "requestsWithStatusCode": {},
+  "errors": {
+    "/home/praveen/APIFY/australia-local-business-scraper/node_modules/@crawlee/browser/internals/browser-crawler.js:371:19": {
+      "missing error code": {
+        "Error": {
+          "Detected a session error, rotating session... ": {
+            "count": 1
+          }
+        }
+      }
+    }
+  },
+  "retryErrors": {
+    "/home/praveen/APIFY/australia-local-business-scraper/node_modules/@crawlee/browser/internals/browser-crawler.js:371:19": {
+      "missing error code": {
+        "Error": {
+          "Detected a session error, rotating session... ": {
+            "count": 10
+          }
+        }
+      }
+    }
+  }
+}

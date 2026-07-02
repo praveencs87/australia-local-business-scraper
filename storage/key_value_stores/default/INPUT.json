@@ -1,0 +1,8 @@
+{
+    "keyword": "plumber",
+    "location": "sydney-nsw",
+    "maxLeads": 5,
+    "proxyConfiguration": {
+        "useApifyProxy": true
+    }
+}

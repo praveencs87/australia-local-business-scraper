@@ -1,0 +1,36 @@
+{
+    "title": "Australia Local Business Directory Scraper Input",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "keyword": {
+            "title": "Keyword / Niche",
+            "type": "string",
+            "description": "The type of business to search for (e.g., 'plumber', 'dentist', 'electrician').",
+            "editor": "textfield",
+            "prefill": "plumber"
+        },
+        "location": {
+            "title": "Location (City or Suburb)",
+            "type": "string",
+            "description": "The location to search in. Format should be hyphenated for TrueLocal (e.g., 'sydney-nsw', 'melbourne-vic').",
+            "editor": "textfield",
+            "prefill": "sydney-nsw"
+        },
+        "maxLeads": {
+            "title": "Maximum Leads",
+            "type": "integer",
+            "description": "Maximum number of business leads to extract.",
+            "default": 100,
+            "minimum": 1
+        },
+        "proxyConfiguration": {
+            "title": "Proxy Configuration",
+            "type": "object",
+            "description": "Proxy settings to bypass Cloudflare. Apify Proxy (Residential or Datacenter) is highly recommended.",
+            "prefill": { "useApifyProxy": true },
+            "editor": "proxy"
+        }
+    },
+    "required": ["keyword", "location"]
+}

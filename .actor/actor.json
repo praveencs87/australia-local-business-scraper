@@ -1,0 +1,37 @@
+{
+    "actorSpecification": 1,
+    "name": "australia-local-business-scraper",
+    "title": "Australia Local Business Directory Scraper",
+    "description": "Extract local business leads (phone, website, address, reviews) from TrueLocal Australia. Perfect for B2B outreach and local SEO.",
+    "version": "1.0",
+    "input": "./input_schema.json",
+    "dockerfile": "./Dockerfile",
+    "minMemoryMbytes": 1024,
+    "maxMemoryMbytes": 4096,
+    "pricingModel": "PAY_PER_EVENT",
+    "pricingEvents": [
+        {
+            "eventName": "apify-actor-start",
+            "pricePerEvent": 0.25,
+            "description": "Base fee for starting the crawler (Playwright overhead)"
+        },
+        {
+            "eventName": "lead-extracted",
+            "pricePerEvent": 0.0025,
+            "description": "Charged per lead successfully extracted ($2.50 per 1k leads)"
+        }
+    ],
+    "isPublic": true,
+    "seoTitle": "Australia Local Business Scraper | TrueLocal Directory Extractor",
+    "seoDescription": "Scrape B2B leads, tradies, plumbers, and local services in Australia from TrueLocal. Extract phone numbers, addresses, ratings, and websites for lead generation.",
+    "categories": [
+        "LEAD_GENERATION",
+        "BUSINESS",
+        "REAL_ESTATE"
+    ],
+    "defaultRunOptions": {
+        "build": "latest",
+        "timeoutSecs": 3600,
+        "memoryMbytes": 1024
+    }
+}
