@@ -7,84 +7,109 @@ try {
     const input = await Actor.getInput();
     const { 
         keyword = 'plumber', 
-        location = 'sydney', 
+        location = 'Sydney', 
         maxLeads = 100,
         proxyConfiguration 
     } = input || {};
 
     const proxyConfig = await Actor.createProxyConfiguration(proxyConfiguration || { 
         useApifyProxy: true,
-        apifyProxyGroups: ['RESIDENTIAL'] // Residential recommended for YellowPages
+        apifyProxyGroups: ['RESIDENTIAL'],
+        apifyProxyCountry: 'AU'
     });
 
-    log.info(`Searching YellowPages Australia for "${keyword}" in "${location}"`);
+    log.info(`Searching local.com.au for "${keyword}" in "${location}"`);
+    
     await Actor.charge({ eventName: 'apify-actor-start', count: 1 });
 
     let extractedCount = 0;
+    let isSearchSubmitted = false;
 
     const crawler = new PlaywrightCrawler({
         proxyConfiguration: proxyConfig,
-        maxConcurrency: 5,
+        maxConcurrency: 2,
         navigationTimeoutSecs: 90,
         browserPoolOptions: {
             useFingerprints: true,
         },
         async requestHandler({ page, request, log, enqueueLinks }) {
-            log.info(`Parsing listing page: ${request.url}`);
+            log.info(`Parsing page: ${request.url}`);
             
-            // Wait for Cloudflare to pass and the main content to load
-            await page.waitForSelector('.search-results-page, .listing, .result-item, h1', { timeout: 30000 }).catch(() => log.warning('Timeout waiting for initial DOM, might be Cloudflare block.'));
-
-            // Check if Cloudflare blocked us
-            const cfTitle = await page.title();
-            if (cfTitle.includes('Attention Required') || cfTitle.includes('Just a moment')) {
-                throw new Error('Blocked by Cloudflare. Retrying with different session...');
+            const title = await page.title();
+            if (title.includes('Just a moment') || title.includes('Access Denied') || title.includes('Attention Required')) {
+                throw new Error('Blocked by WAF. Retrying with residential proxy...');
             }
 
-            // In YellowPages Australia, data is often stored in a large JSON object in a script tag or in standard class names.
-            // Let's try to parse the DOM for typical elements.
-            const businessItems = await page.$$('.listing, .box, .search-contact-card, .listing-summary');
+            if (request.url === 'https://www.local.com.au/' && !isSearchSubmitted) {
+                log.info('Filling out the search form on local.com.au homepage...');
+                // The form uses inputs with class 'search-input'
+                await page.waitForSelector('input[name="q"], input[placeholder*="What"]', { timeout: 30000 });
+                const whatInputs = await page.$$('input[name="q"], input[placeholder*="What"]');
+                if (whatInputs.length > 0) await whatInputs[0].fill(keyword);
+                
+                const whereInputs = await page.$$('input[name="l"], input[placeholder*="Where"]');
+                if (whereInputs.length > 0) await whereInputs[0].fill(location);
+                
+                await Promise.all([
+                    page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 }),
+                    page.click('button[type="submit"], input[type="submit"], .search-btn, button.btn-primary')
+                ]).catch(() => log.warning('Navigation wait timed out, continuing...'));
+                
+                log.info(`Redirected to search results: ${page.url()}`);
+                isSearchSubmitted = true;
+            }
+
+            // Results page parsing
+            await page.waitForSelector('.business-listing, .listing, .result, .search-result, .card', { timeout: 30000 }).catch(() => log.warning('Timeout waiting for DOM.'));
             
-            for (const item of businessItems) {
+            await page.evaluate(() => window.scrollBy(0, window.innerHeight * 2));
+            await page.waitForTimeout(2000);
+
+            const items = await page.$$('.business-listing, .listing, .result, .search-result, .card');
+            
+            for (const item of items) {
                 if (extractedCount >= maxLeads) break;
 
-                const nameElement = await item.$('.listing-name, h2, h3');
+                const nameElement = await item.$('h2, .title, .business-name, .name, a[itemprop="url"]');
                 if (!nameElement) continue;
                 const businessName = (await nameElement.innerText()).trim();
 
-                const categoryElement = await item.$('.listing-heading, .category, .industry');
-                const category = categoryElement ? (await categoryElement.innerText()).trim() : '';
+                const addressElement = await item.$('.address, .location, [itemprop="address"]');
+                const address = addressElement ? (await addressElement.innerText()).trim().replace(/\s+/g, ' ') : '';
 
-                const addressElement = await item.$('.listing-address, .address');
-                const address = addressElement ? (await addressElement.innerText()).trim() : '';
+                // Category
+                const catElement = await item.$('.category, .industry, [itemprop="applicationCategory"]');
+                const industry = catElement ? (await catElement.innerText()).trim() : keyword;
 
-                // Click to reveal phone numbers if hidden
-                const showNumberBtn = await item.$('.call-button, .show-number, button:has-text("Show number")');
-                if (showNumberBtn) {
-                    try {
-                        await showNumberBtn.click();
-                        await page.waitForTimeout(500);
-                    } catch (e) {}
+                // Phones
+                const phoneElement = await item.$('a[href^="tel:"], .phone, .contact-number, [itemprop="telephone"], .btn-call');
+                let phone = '';
+                if (phoneElement) {
+                    const href = await phoneElement.getAttribute('href');
+                    if (href && href.startsWith('tel:')) {
+                        phone = href.replace('tel:', '').trim();
+                    } else {
+                        phone = (await phoneElement.innerText()).trim();
+                    }
                 }
-
-                const phoneElement = await item.$('.contact-phone, .phone, a[href^="tel:"]');
-                const phone = phoneElement ? (await phoneElement.innerText()).trim() : '';
-
-                const websiteElement = await item.$('.contact-url, .website, a.contact-button[href^="http"]');
+                
+                // Website
+                const websiteElement = await item.$('.website a, a.website-link, .btn-website');
                 const website = websiteElement ? await websiteElement.getAttribute('href') : '';
                 
-                const urlElement = await item.$('.listing-name, a.listing-name');
+                // URL
+                const urlElement = await item.$('h2 a, .business-name a, a.title, a[itemprop="url"]');
                 const listingUrl = urlElement ? await urlElement.getAttribute('href') : '';
-                const fullListingUrl = listingUrl && !listingUrl.startsWith('http') ? new URL(listingUrl, 'https://www.yellowpages.com.au').toString() : listingUrl;
+                const fullListingUrl = listingUrl && !listingUrl.startsWith('http') ? new URL(listingUrl, 'https://www.local.com.au').toString() : listingUrl;
 
-                if (businessName) {
+                if (businessName && businessName.length > 1) {
                     const record = {
                         businessName,
-                        category,
+                        industry,
                         address,
                         phone,
                         website,
-                        listingUrl: fullListingUrl || request.url,
+                        listingUrl: fullListingUrl || page.url(),
                         scrapedAt: new Date().toISOString()
                     };
 
@@ -97,11 +122,11 @@ try {
 
             // Pagination
             if (extractedCount < maxLeads) {
-                const hasNextPage = await page.$('a.next, .pagination-next, a:has-text("Next")');
+                const hasNextPage = await page.$('.pagination a.next, a[rel="next"], .next-page, a:has-text("Next")');
                 if (hasNextPage) {
                     const nextUrl = await hasNextPage.getAttribute('href');
                     if (nextUrl) {
-                        const absoluteUrl = new URL(nextUrl, 'https://www.yellowpages.com.au').toString();
+                        const absoluteUrl = new URL(nextUrl, 'https://www.local.com.au').toString();
                         log.info(`Enqueuing next page: ${absoluteUrl}`);
                         await enqueueLinks({
                             urls: [absoluteUrl],
@@ -115,17 +140,13 @@ try {
         }
     });
 
-    // We target YellowPages Australia
-    const startUrl = `https://www.yellowpages.com.au/search/listings?clue=${encodeURIComponent(keyword)}&locationClue=${encodeURIComponent(location)}`;
-    
     await crawler.addRequests([{
-        url: startUrl,
-        userData: { isListingPage: true }
+        url: 'https://www.local.com.au/'
     }]);
 
     await crawler.run();
 
-    log.info(`🎉 Done! Extracted ${extractedCount} Australian business leads.`);
+    log.info(`🎉 Done! Extracted ${extractedCount} Australian Business leads.`);
 
 } catch (error) {
     console.error('CRASH:', error);

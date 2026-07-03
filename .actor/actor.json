@@ -1,8 +1,8 @@
 {
     "actorSpecification": 1,
     "name": "australia-local-business-scraper",
-    "title": "Australia Local Business Directory Scraper",
-    "description": "Extract local business leads (phone, website, address, reviews) from TrueLocal Australia. Perfect for B2B outreach and local SEO.",
+    "title": "Australia Local Business Scraper | B2B Leads",
+    "description": "Extract verified Australian businesses and tradesmen from Local.com.au. Premium B2B leads.",
     "version": "1.0",
     "input": "./input_schema.json",
     "dockerfile": "./Dockerfile",
@@ -22,8 +22,8 @@
         }
     ],
     "isPublic": true,
-    "seoTitle": "Australia Local Business Scraper | TrueLocal Directory Extractor",
-    "seoDescription": "Scrape B2B leads, tradies, plumbers, and local services in Australia from TrueLocal. Extract phone numbers, addresses, ratings, and websites for lead generation.",
+    "seoTitle": "Local.com.au Scraper | Australia Business Directory Extractor",
+    "seoDescription": "Scrape verified Australian businesses, tradesmen, and B2B leads from Local.com.au.",
     "categories": [
         "LEAD_GENERATION",
         "BUSINESS",
