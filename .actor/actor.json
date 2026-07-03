@@ -1,37 +1,40 @@
 {
-    "actorSpecification": 1,
-    "name": "australia-local-business-scraper",
-    "title": "Australia Local Business Scraper | B2B Leads",
-    "description": "Extract verified Australian businesses and tradesmen from Local.com.au. Premium B2B leads.",
-    "version": "1.0",
-    "input": "./input_schema.json",
-    "dockerfile": "./Dockerfile",
-    "minMemoryMbytes": 1024,
-    "maxMemoryMbytes": 4096,
-    "pricingModel": "PAY_PER_EVENT",
-    "pricingEvents": [
-        {
-            "eventName": "apify-actor-start",
-            "pricePerEvent": 0.25,
-            "description": "Base fee for starting the crawler (Playwright overhead)"
-        },
-        {
-            "eventName": "lead-extracted",
-            "pricePerEvent": 0.0025,
-            "description": "Charged per lead successfully extracted ($2.50 per 1k leads)"
-        }
-    ],
-    "isPublic": true,
-    "seoTitle": "Local.com.au Scraper | Australia Business Directory Extractor",
-    "seoDescription": "Scrape verified Australian businesses, tradesmen, and B2B leads from Local.com.au.",
-    "categories": [
-        "LEAD_GENERATION",
-        "BUSINESS",
-        "REAL_ESTATE"
-    ],
-    "defaultRunOptions": {
-        "build": "latest",
-        "timeoutSecs": 1800,
-        "memoryMbytes": 4096
+  "actorSpecification": 1,
+  "name": "australia-local-business-scraper",
+  "title": "Australia Local Business Scraper | B2B Leads",
+  "description": "Extract verified Australian businesses and tradesmen from Local.com.au. Premium B2B leads.",
+  "version": "1.0",
+  "input": "./input_schema.json",
+  "dockerfile": "./Dockerfile",
+  "minMemoryMbytes": 1024,
+  "maxMemoryMbytes": 4096,
+  "pricingModel": "PAY_PER_EVENT",
+  "pricingEvents": [
+    {
+      "eventName": "apify-actor-start",
+      "pricePerEvent": 0.25,
+      "description": "Base fee for starting the crawler (Playwright overhead)"
+    },
+    {
+      "eventName": "lead-extracted",
+      "pricePerEvent": 0.0025,
+      "description": "Charged per lead successfully extracted ($2.50 per 1k leads)"
     }
+  ],
+  "isPublic": true,
+  "seoTitle": "Local.com.au Scraper | Australia Business Directory Extractor",
+  "seoDescription": "Scrape verified Australian businesses, tradesmen, and B2B leads from Local.com.au.",
+  "categories": [
+    "LEAD_GENERATION",
+    "BUSINESS",
+    "REAL_ESTATE"
+  ],
+  "defaultRunOptions": {
+    "build": "latest",
+    "timeoutSecs": 1800,
+    "memoryMbytes": 4096
+  },
+  "storages": {
+    "dataset": "./dataset_schema.json"
+  }
 }
