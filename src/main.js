@@ -7,8 +7,7 @@ await Actor.init();
 try {
     const input = await Actor.getInput();
     const { 
-        keyword = 'plumber', 
-        location = 'Sydney', 
+        startUrls = [],
         maxLeads = 100,
         proxyConfiguration 
     } = input || {};
@@ -19,7 +18,7 @@ try {
         apifyProxyCountry: 'AU'
     });
 
-    log.info(`Searching local.com.au for "${keyword}" in "${location}"`);
+    log.info(`Searching local.com.au...`);
     
     await Actor.charge({ eventName: 'apify-actor-start', count: 1 });
 
@@ -41,24 +40,7 @@ try {
                 throw new Error('Blocked by WAF. Retrying with residential proxy...');
             }
 
-            if (request.url === 'https://www.local.com.au/' && !isSearchSubmitted) {
-                log.info('Filling out the search form on local.com.au homepage...');
-                // The form uses inputs with class 'search-input'
-                await page.waitForSelector('input[name="q"], input[placeholder*="What"]', { timeout: 30000 });
-                const whatInputs = await page.$$('input[name="q"], input[placeholder*="What"]');
-                if (whatInputs.length > 0) await whatInputs[0].fill(keyword);
-                
-                const whereInputs = await page.$$('input[name="l"], input[placeholder*="Where"]');
-                if (whereInputs.length > 0) await whereInputs[0].fill(location);
-                
-                await Promise.all([
-                    page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 }),
-                    page.click('button[type="submit"], input[type="submit"], .search-btn, button.btn-primary')
-                ]).catch(() => log.warning('Navigation wait timed out, continuing...'));
-                
-                log.info(`Redirected to search results: ${page.url()}`);
-                isSearchSubmitted = true;
-            }
+            // Assume request.url is a valid search result page if provided via startUrls.
 
             // Results page parsing
             await page.waitForSelector('.business-listing, .listing, .result, .search-result, .card', { timeout: 30000 }).catch(() => log.warning('Timeout waiting for DOM.'));
@@ -80,7 +62,7 @@ try {
 
                 // Category
                 const catElement = await item.$('.category, .industry, [itemprop="applicationCategory"]');
-                const industry = catElement ? (await catElement.innerText()).trim() : keyword;
+                const industry = catElement ? (await catElement.innerText()).trim() : '';
 
                 // Phones
                 const phoneElement = await item.$('a[href^="tel:"], .phone, .contact-number, [itemprop="telephone"], .btn-call');
@@ -141,9 +123,14 @@ try {
         }
     });
 
-    await crawler.addRequests([{
-        url: 'https://www.local.com.au/'
-    }]);
+    if (startUrls && startUrls.length > 0) {
+        for (const req of startUrls) {
+            await crawler.addRequests([{ url: typeof req === 'string' ? req : req.url }]);
+        }
+    } else {
+        log.warning('No startUrls provided. Using default.');
+        await crawler.addRequests([{ url: 'https://www.truelocal.com.au/search/plumber/sydney-nsw' }]);
+    }
 
     armKillSwitch(crawler);
     await crawler.run();

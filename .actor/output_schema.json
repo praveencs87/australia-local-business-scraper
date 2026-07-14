@@ -1,0 +1,13 @@
+{
+    "actorOutputSchemaVersion": 1,
+    "title": "Australia Local Business Scraper | B2B Leads Output",
+    "description": "Output data from the Australia Local Business Scraper | B2B Leads. Results are stored in the default Apify dataset.",
+    "properties": {
+        "results": {
+            "type": "string",
+            "title": "Results",
+            "description": "Extracted data items stored in the default dataset.",
+            "template": "{{links.apiDefaultDatasetUrl}}/items"
+        }
+    }
+}

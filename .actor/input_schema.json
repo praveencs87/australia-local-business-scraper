@@ -3,19 +3,14 @@
     "type": "object",
     "schemaVersion": 1,
     "properties": {
-        "keyword": {
-            "title": "Keyword / Niche",
-            "type": "string",
-            "description": "The type of business to search for (e.g., 'plumber', 'dentist', 'electrician').",
-            "editor": "textfield",
-            "prefill": "plumber"
-        },
-        "location": {
-            "title": "Location (City or Suburb)",
-            "type": "string",
-            "description": "The location to search in. Format should be hyphenated for TrueLocal (e.g., 'sydney-nsw', 'melbourne-vic').",
-            "editor": "textfield",
-            "prefill": "sydney-nsw"
+        "startUrls": {
+            "title": "Start URLs",
+            "type": "array",
+            "description": "List of search URLs to scrape.",
+            "editor": "requestListSources",
+            "prefill": [
+                { "url": "https://www.truelocal.com.au/search/plumber/sydney-nsw" }
+            ]
         },
         "maxLeads": {
             "title": "Maximum Leads",
@@ -32,5 +27,5 @@
             "editor": "proxy"
         }
     },
-    "required": ["keyword", "location"]
+    "required": ["startUrls"]
 }
